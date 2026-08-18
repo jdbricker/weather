@@ -1,0 +1,49 @@
+# Job resources for Weather data workflow
+resources:
+  jobs:
+    weather_data_workflow:
+      name: weather_data_workflow_${bundle.target}
+      
+      # Schedule: Run daily at 2 AM UTC
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "UTC"
+        pause_status: UNPAUSED
+      
+      # Email notifications on failure
+      email_notifications:
+        on_failure:
+          - jdbricker@gmail.com
+      
+      # Job tasks
+      tasks:
+        # Task 1: Fetch data from NOAA and write to volume
+        - task_key: fetch_weather_data
+          description: "Download weather data from NOAA and save to Unity Catalog volume"
+          
+          spark_python_task:
+            python_file: ../src/fetch_data.py
+          
+          libraries:
+            - pypi:
+                package: requests
+          
+          # Use serverless compute
+          new_cluster:
+            spark_version: "15.4.x-scala2.12"
+        
+        # Task 2: Run the pipeline (depends on Task 1)
+        - task_key: process_weather_data
+          description: "Process weather data through Bronze -> Silver -> Gold pipeline"
+          
+          depends_on:
+            - task_key: fetch_weather_data
+          
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.weather_medallion.id}
+            full_refresh: false
+      
+      # Permissions
+      permissions:
+        - level: CAN_VIEW
+          group_name: users
