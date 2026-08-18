@@ -1,0 +1,41 @@
+# Databricks Asset Bundle (DAB) for Weather Pipeline Project
+bundle:
+  name: weather_pipeline
+
+variables:
+  catalog:
+    description: Unity Catalog name
+    default: workspace
+  
+  schema:
+    description: Schema name for tables
+    default: default
+
+include:
+  - resources/*.yml
+
+targets:
+  # Development target - uses your personal workspace
+  dev:
+    mode: development
+    default: true
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/weather/.bundle/dev
+    variables:
+      catalog: workspace
+      schema: ${workspace.current_user.short_name}_dev
+    
+  # Production target
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/.bundle/weather/prod
+      # Uncomment and set your production workspace URL if different
+      # host: https://your-prod-workspace.cloud.databricks.com
+    variables:
+      catalog: prod_catalog
+      schema: weather
+    # Require explicit approval for production deployments
+    run_as:
+      # Set to a service principal or group for production
+      user_name: jdbricker@gmail.com

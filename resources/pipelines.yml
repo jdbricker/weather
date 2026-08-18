@@ -1,0 +1,40 @@
+# Pipeline resources for Weather data processing
+resources:
+  pipelines:
+    weather_medallion:
+      name: weather_medallion_${bundle.target}
+      
+      # Pipeline configuration
+      catalog: ${var.catalog}
+      target: ${var.schema}
+      
+      # Use serverless compute
+      serverless: true
+      photon: true
+      
+      # Continuous or triggered
+      continuous: false
+      
+      # Development mode for dev target only
+      development: true
+      
+      # Pipeline files - includes all transformation files
+      libraries:
+        - glob:
+            include: medallion_transformations/transformations/**
+      
+      # Channel and configuration
+      channel: CURRENT
+      
+      # Notifications (optional)
+      notifications:
+        - email_recipients:
+            - jdbricker@gmail.com
+          alerts:
+            - on-update-failure
+            - on-update-fatal-failure
+      
+      # Permissions (optional)
+      permissions:
+        - level: CAN_VIEW
+          group_name: users
