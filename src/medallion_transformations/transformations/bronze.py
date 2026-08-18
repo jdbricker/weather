@@ -14,8 +14,10 @@ def bronze():
         .format("cloudFiles")
         .option("cloudFiles.format", "text")
         .load(SOURCE)
-        .withColumn("raw_text", F.col("value"))           
-        .withColumn("source_file", F.col("_metadata.file_path"))  
-        .withColumn("ingested_at", F.current_timestamp()) 
+        .withColumns({
+            "raw_text": F.col("value"),
+            "source_file": F.col("_metadata.file_path"),
+            "ingested_at": F.current_timestamp()
+        })
         .drop("value")
     )
