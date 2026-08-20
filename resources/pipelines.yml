@@ -22,7 +22,7 @@ resources:
       # Pipeline files - includes all transformation files
       libraries:
         - glob:
-            include: src/medallion_transformations/transformations/**
+            include: ../src/medallion_transformations/transformations/**
       
       # Channel and configuration
       channel: CURRENT

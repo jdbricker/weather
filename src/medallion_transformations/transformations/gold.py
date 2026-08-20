@@ -2,10 +2,10 @@ from pyspark import pipelines as dp
 import pyspark.sql.functions as F
 from pyspark.sql.types import IntegerType
 
-SOURCE = 'data.silver.weather'
+SOURCE = 'silver_weather'
 
 @dp.materialized_view(
-    name="data.gold.snwd",
+    name="gold_snwd",
     comment="snow depth"
 )
 def snwd():

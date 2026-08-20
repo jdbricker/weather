@@ -17,6 +17,8 @@ include:
 targets:
   # Development target - uses your personal workspace
   dev:
+    run_as:
+      user_name: jdbricker@gmail.com
     mode: development
     default: true
     workspace:

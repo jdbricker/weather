@@ -2,11 +2,11 @@ from pyspark import pipelines as dp
 import pyspark.sql.functions as F
 from pyspark.sql.types import IntegerType
 
-SOURCE = 'data.bronze.weather'
+SOURCE = 'bronze_weather'  # Same schema (jdbricker_dev), different table
 
 # Stage 1: Append-only streaming table with all parsed records
 @dp.table(
-    name="data.silver.weather_staging",
+    name="weather_staging",
     comment="Staging table for parsed NOAA weather data (append-only, may contain duplicates)"
 )
 def weather_staging():
@@ -29,11 +29,7 @@ def weather_staging():
     })
     
     # Extract 31 daily values (each is 8 characters starting at position 22)
-    daily_values = []
-    for day in range(1, 32):
-        start_pos = 22 + (day - 1) * 8
-        daily_values.append(F.substring("raw_text", start_pos, 8))
-    
+    daily_values = [F.substring("raw_text", 22 + (day - 1) * 8, 8) for day in range(1, 32)]
     df = df.withColumn("daily_values", F.array(*daily_values))
     
     # Explode to get one row per day
@@ -69,12 +65,19 @@ def weather_staging():
         "ingested_at"
     )
 
-
 # Stage 2: Deduplicated table with MERGE logic - keeps LATEST record per station/date/element
+# Define the target table first (required by apply_changes)
+@dp.table(
+    name="silver_weather",
+    comment="Deduplicated weather observations (SCD Type 1 - latest record per station/date/element)"
+)
+def weather():
+    return None  # apply_changes manages the table lifecycle
+
 # Using apply_changes for CDC-style upsert (SCD Type 1)
 dp.apply_changes(
-    target="data.silver.weather",
-    source="data.silver.weather_staging",
+    target="silver_weather",
+    source="weather_staging",
     keys=["station_id", "date", "element"],
     sequence_by="ingested_at",
     stored_as_scd_type=1,  # SCD Type 1: only keep latest version

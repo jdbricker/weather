@@ -4,7 +4,7 @@ import pyspark.sql.functions as F
 SOURCE = '/Volumes/data/default/data/weather/'
 
 @dp.table(
-    name="data.bronze.weather",
+    name="bronze_weather",
     comment="Raw weather data ingested from text files using Auto Loader"
 )
 def bronze():
