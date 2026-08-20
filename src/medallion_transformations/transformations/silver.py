@@ -68,7 +68,7 @@ def weather_staging():
 # Stage 2: Deduplicated table with MERGE logic - keeps LATEST record per station/date/element
 # Define the target table first (required by apply_changes)
 @dp.table(
-    name="silver_weather",
+    name="weather",
     comment="Deduplicated weather observations (SCD Type 1 - latest record per station/date/element)"
 )
 def weather():
@@ -76,7 +76,7 @@ def weather():
 
 # Using apply_changes for CDC-style upsert (SCD Type 1)
 dp.apply_changes(
-    target="silver_weather",
+    target="weather",
     source="weather_staging",
     keys=["station_id", "date", "element"],
     sequence_by="ingested_at",
