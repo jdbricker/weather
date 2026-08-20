@@ -2,6 +2,7 @@
 resources:
   pipelines:
     weather_medallion:
+      id: weather_medallion
       name: weather_medallion_${bundle.target}
       
       # Pipeline configuration
