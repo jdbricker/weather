@@ -66,16 +66,14 @@ def weather_staging():
     )
 
 # Stage 2: Deduplicated table with MERGE logic - keeps LATEST record per station/date/element
-# Define the target table first (required by apply_changes)
-@dp.table(
+# Create target table
+dp.create_streaming_table(
     name="weather",
     comment="Deduplicated weather observations (SCD Type 1 - latest record per station/date/element)"
 )
-def weather():
-    return None  # apply_changes manages the table lifecycle
 
-# Using apply_changes for CDC-style upsert (SCD Type 1)
-dp.apply_changes(
+# Define CDC flow
+dp.create_auto_cdc_flow(
     target="weather",
     source="weather_staging",
     keys=["station_id", "date", "element"],

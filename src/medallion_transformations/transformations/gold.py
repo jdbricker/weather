@@ -2,7 +2,7 @@ from pyspark import pipelines as dp
 import pyspark.sql.functions as F
 from pyspark.sql.types import IntegerType
 
-SOURCE = 'silver_weather'
+SOURCE = 'weather'
 
 @dp.materialized_view(
     name="gold_snwd",
