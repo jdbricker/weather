@@ -1,6 +1,7 @@
 from pyspark import pipelines as dp
 import pyspark.sql.functions as F
-from pyspark.sql.types import IntegerType
+import pyspark.sql.types as T
+from pyspark.sql.window import Window
 
 SOURCE = 'weather'
 
