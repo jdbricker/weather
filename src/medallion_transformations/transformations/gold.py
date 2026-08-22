@@ -1,6 +1,7 @@
 from pyspark import pipelines as dp
 import pyspark.sql.functions as F
 import pyspark.sql.types as T
+from pyspark.sql.types import StringType
 from pyspark.sql.window import Window
 
 SOURCE = 'weather'
@@ -36,28 +37,33 @@ def snowfall():
         .withColumn('next_year', F.col('year') + 1)
         .withColumn('previous_year', F.col('year') - 1)
         .withColumn(
-            'winter_season',
+            'winter_season_start',
             F.when(
                 (F.col('month') >= 11),
-                F.concat_ws('-', F.col('year').cast(T.StringType()), F.col('next_year').cast(T.StringType()))
+                F.make_date(F.col('year'), F.lit(11), F.lit(1))
             )
             .when(
-                (F.col('month') <= 5),
-                F.concat_ws('-', F.col('previous_year').cast(T.StringType()), F.col('year').cast(T.StringType()))
+                (F.col('month') <= 4),
+                F.make_date(F.col('year') - 1 , F.lit(11), F.lit(1))
             )
             .otherwise(F.lit(None))
         )
-        .filter(F.col('winter_season').isNotNull())
+        .withColumn(
+            'winter_season',
+            F.concat_ws('-', F.year('winter_season_start').cast(T.StringType()), (F.year('winter_season_start') + F.lit(1)).cast(T.StringType()))
+        )
+        .withColumn('winter_season_day', F.date_diff('date', 'winter_season_start'))
+        .filter(F.col('winter_season_start').isNotNull())
         .withColumn(
             'cumulative_snowfall',
             F.sum(F.col('value') / 25.4)
             .over(
                 Window
                 .partitionBy(F.col('winter_season'))
-                .orderBy(F.col('month'), F.dayofmonth(F.col('date')))
+                .orderBy(F.col('winter_season_day'))
             )
         )
-        .select('winter_season','year','month','day', 'cumulative_snowfall')
+        .select('winter_season',  'winter_season_day','year','month','day', 'cumulative_snowfall')
     )
     
     return df
